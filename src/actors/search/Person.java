@@ -1,18 +1,34 @@
 package actors.search;
 
-public class Person {
+import java.util.ArrayList;
+import java.util.Objects;
 
-    private int value;
+public class Person implements Comparable<Person> {
+
+    private double score;
     private String queryName;
     private String name;
-    private long id;
-    private String[] imageUrls;
+    private int id;
+    private ArrayList<String> imageUrls = new ArrayList<>();
     private String personLink;
-    private String myRating;
-    private String myComments;
+    private double myRating;
+    private ArrayList<String> myComments = new ArrayList<>();
 
-    public Person(int value, String queryName, String name, long id, String[] imageUrls, String personLink, String myRating, String myComments) {
-	this.value = value;
+    public Person() {
+
+    }
+
+    public Person(double score, String queryName, String name, int id, ArrayList<String> imageUrls, String personLink) {
+	this.score = score;
+	this.queryName = queryName;
+	this.name = name;
+	this.id = id;
+	this.imageUrls = imageUrls;
+	this.personLink = personLink;
+    }
+
+    public Person(double score, String queryName, String name, int id, ArrayList<String> imageUrls, String personLink, double myRating, ArrayList<String> myComments) {
+	this.score = score;
 	this.queryName = queryName;
 	this.name = name;
 	this.id = id;
@@ -22,12 +38,12 @@ public class Person {
 	this.myComments = myComments;
     }
 
-    public int getValue() {
-	return value;
+    public double getScore() {
+	return score;
     }
 
-    public void setValue(int value) {
-	this.value = value;
+    public void setScore(double score) {
+	this.score = score;
     }
 
     public String getQueryName() {
@@ -46,19 +62,19 @@ public class Person {
 	this.name = name;
     }
 
-    public long getId() {
+    public int getId() {
 	return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
 	this.id = id;
     }
 
-    public String[] getImageUrls() {
+    public ArrayList<String> getImageUrls() {
 	return imageUrls;
     }
 
-    public void setImageUrls(String[] imageUrls) {
+    public void setImageUrls(ArrayList<String> imageUrls) {
 	this.imageUrls = imageUrls;
     }
 
@@ -70,24 +86,62 @@ public class Person {
 	this.personLink = personLink;
     }
 
-    public String getMyRating() {
+    public double getMyRating() {
 	return myRating;
     }
 
-    public void setMyRating(String myRating) {
+    public void setMyRating(double myRating) {
 	this.myRating = myRating;
     }
 
-    public String getMyComments() {
+    public ArrayList<String> getMyComments() {
 	return myComments;
     }
 
-    public void setMyComments(String myComments) {
+    public void setMyComments(ArrayList<String> myComments) {
 	this.myComments = myComments;
     }
 
     @Override
+    public boolean equals(Object obj) {
+	if (this == obj) {
+	    return true;
+	}
+	if (obj == null) {
+	    return false;
+	}
+	if (getClass() != obj.getClass()) {
+	    return false;
+	}
+	final Person other = (Person) obj;
+	if (this.id != other.id) {
+	    return false;
+	}
+	if (!Objects.equals(this.name, other.name)) {
+	    return false;
+	}
+	if (!Objects.equals(this.personLink, other.personLink)) {
+	    return false;
+	}
+	return true;
+    }
+
+    @Override
+    public int hashCode() {
+	int hash = 5;
+	hash = 29 * hash + Objects.hashCode(this.name);
+	hash = 29 * hash + this.id;
+	hash = 29 * hash + Objects.hashCode(this.personLink);
+	return hash;
+    }
+
+    @Override
+    public int compareTo(Person o) {
+	return this.name.compareTo(o.getName());
+    }
+
+    @Override
     public String toString() {
-	return "Person{" + "value=" + value + ", queryName=" + queryName + ", name=" + name + ", id=" + id + ", imageUrls=" + imageUrls + ", personLink=" + personLink + ", myRating=" + myRating + ", myComments=" + myComments + '}';
+	return "Person{" + "score=" + score + ", queryName=" + queryName + ", name=" + name + ", id=" + id + ", imageUrls=" + imageUrls + ", personLink=" + personLink + ", myRating=" + myRating + ", myComments=" + myComments + '}';
     }
 }

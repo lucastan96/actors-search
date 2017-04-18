@@ -1,6 +1,5 @@
 package actors.search;
 
-import java.io.IOException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -12,18 +11,13 @@ public class ActorsSearch {
     }
 
     private void start() {
-	Functions f = new Functions();
-	try {
-	    f.loadPersons();
-	} catch (IOException e) {
-	    System.out.println("Error: " + e);
-	}
+	LocalStore ls = new LocalStore();
 
 	Scanner s = new Scanner(System.in);
 	int option = 0;
 
 	while (option != 7) {
-	    System.out.println("**** Menu *******************************");
+	    System.out.println("\n**** Menu *******************************");
 	    System.out.println("1. Search for Persons");
 	    System.out.println("2. List All Persons");
 	    System.out.println("3. List Persons Sorted by Person ID");
@@ -37,25 +31,29 @@ public class ActorsSearch {
 	    if (option == 1) {
 		System.out.print("\nPlease enter a name to search: ");
 		String name = s.nextLine();
-		f.searchPerson();
+		ls.searchPerson(name);
 	    } else if (option == 2) {
-		System.out.println("\nAll saved persons are displayed below:");
-		f.getPersonsSortedByName();
+		System.out.println("\nAll saved persons are displayed below:\n");
+		ls.getPersonsSortedByName();
 	    } else if (option == 3) {
-		System.out.println("\nAll saved persons are sorted by Person ID and displayed below:");
-		f.getPersonsSortedById();
+		System.out.println("\nAll saved persons are sorted by Person ID and displayed below:\n");
+		ls.getPersonsSortedById();
 	    } else if (option == 4) {
-		System.out.println("\nAll saved persons are sorted by rating and displayed below:");
-		f.getPersonsSortedByRating();
+		System.out.println("\nAll saved persons are sorted by rating and displayed below:\n");
+		ls.getPersonsSortedByRating();
 	    } else if (option == 5) {
 		System.out.print("\nPlease enter a name to edit: ");
 		String name = s.nextLine();
-		f.editPerson();
+		ls.editPerson(name);
 	    } else if (option == 6) {
 		System.out.println("\nAll search results have been exported to a HTML file.");
+		ls.exportPersonsToHTML();
 	    } else if (option == 7) {
-		System.out.println("\nApp Exited Successfully.");
+		ls.saveLocalStore();
+		System.out.println("\nData has been saved successfully. Application will now shut down.");
 		break;
+	    } else {
+		System.out.println("\nError: Invalid input received. Please enter option again (1-7).");
 	    }
 	}
     }
