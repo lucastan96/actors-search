@@ -142,6 +142,37 @@ public class Person implements Comparable<Person> {
 
     @Override
     public String toString() {
-	return "Person{" + "score=" + score + ", queryName=" + queryName + ", name=" + name + ", id=" + id + ", imageUrls=" + imageUrls + ", personLink=" + personLink + ", myRating=" + myRating + ", myComments=" + myComments + '}';
+	String imgUrls = "";
+
+	if (imageUrls.isEmpty()) {
+	    imgUrls = "No URLs found.";
+	} else {
+	    for (int i = 0; i < imageUrls.size(); i++) {
+		imgUrls += "\n" + imageUrls.get(i);
+	    }
+	}
+
+	return "Query Name: " + queryName + "\nID: " + id + "\nName: " + name + "\nScore: " + score + "\nLink: " + personLink + "\nImage URLs: " + imgUrls + "\nMy Rating: " + myRating + "\nMy Comments: " + myComments + "\n";
+    }
+
+    public String toHTML() {
+	String code = "<div>";
+	code += "<div class='img-container'>";
+
+	for (int i = 0; i < imageUrls.size(); i++) {
+	    code += "<img src='" + imageUrls.get(i) + "' alt='Picture'>";
+	}
+	
+	code += "</div>";
+	code += "<p>Query Name: " + queryName + "</p>";
+	code += "<p>ID: " + id + "</p>";
+	code += "<p>Name: " + name + "</p>";
+	code += "<p>Score: " + score + "</p>";
+	code += "<p>Link: <a href='" + personLink + "'>" + personLink + "</a></p>";
+	code += "<p>My Rating: " + myRating + "</p>";
+	code += "<p>My Comments: " + myComments + "</p>";
+	code += "</div><hr>";
+
+	return code;
     }
 }

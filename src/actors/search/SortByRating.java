@@ -16,6 +16,5 @@ public class SortByRating implements Comparator<Person> {
 	} else {
 	    return 0;
 	}
-
     }
 }

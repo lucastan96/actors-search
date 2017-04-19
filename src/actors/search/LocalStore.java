@@ -1,10 +1,13 @@
 package actors.search;
 
+import java.awt.Desktop;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,62 +78,76 @@ public class LocalStore {
     }
 
     public void saveLocalStore() {
-
+	// TO DO
     }
 
-    public ArrayList<Person> searchPerson(String name) {
-	ArrayList<Person> results = searchLocalStore(name);
+    public void searchPerson(String queryName) {
+	ArrayList<Person> results = searchLocalStore(queryName);
+	System.out.println("");
 
 	if (results.isEmpty()) {
-	    results = searchAPI(name);
+	    System.out.println("No person named " + queryName + " found in the local store. Searching using TVmaze now...");
+	    results = searchAPI(queryName);
+
+	    if (!results.isEmpty()) {
+		System.out.println("All persons named " + queryName + " found using the TVmaze API are listed down below:\n");
+	    }
+	} else {
+	    System.out.println("All persons named " + queryName + " found in the local store are listed down below:\n");
 	}
 
-	return results;
+	for (Person p : results) {
+	    System.out.println(p.toString());
+	}
     }
 
-    public ArrayList<Person> searchLocalStore(String name) {
+    public ArrayList<Person> searchLocalStore(String queryName) {
 	ArrayList<Person> results = new ArrayList<>();
-	Set<String> queryName = localStore.keySet();
-	if (queryName.contains(name)) {
-	    results = localStore.get(name);
+	Set<String> queryNames = localStore.keySet();
+	if (queryNames.contains(queryName)) {
+	    results = localStore.get(queryName);
 	}
 
 	return results;
     }
 
-    public ArrayList<Person> searchAPI(String name) {
+    public ArrayList<Person> searchAPI(String queryName) {
 	ArrayList<Person> results = new ArrayList<>();
 
 	try {
 	    String link = "http://api.tvmaze.com/search/people?q=";
-	    URL url = new URL(link + name);
+	    URL url = new URL(link + queryName);
 	    InputStream in = url.openStream();
 
 	    JsonReader reader = Json.createReader(in);
 	    JsonArray array = reader.readArray();
 
-	    for (int i = 0; i < array.size(); i++) {
-		JsonObject object = array.getJsonObject(i);
-		double score = object.getJsonNumber("score").doubleValue();
-		JsonObject person = object.getJsonObject("person");
-		int id = person.getJsonNumber("id").intValue();
-		String url1 = person.getString("url");
-		String name1 = person.getString("name");
-		ArrayList<String> image = new ArrayList<>();
-		if (!person.isNull("image")) {
-		    JsonObject images = person.getJsonObject("image");
-		    String medium = images.getString("medium");
-		    String original = images.getString("original");
-		    image.add(medium);
-		    image.add(original);
-		}
-		JsonObject link1 = person.getJsonObject("_links");
-		JsonObject self = link1.getJsonObject("self");
-		String url2 = self.getString("href");
-		results.add(new Person(score, name, name1, id, image, url2));
-	    }
+	    if (array.isEmpty()) {
+		System.out.println("No person named " + queryName + " found using TVmaze either. Please try another search.");
+	    } else {
+		for (int i = 0; i < array.size(); i++) {
+		    JsonObject object = array.getJsonObject(i);
+		    double score = object.getJsonNumber("score").doubleValue();
+		    JsonObject person = object.getJsonObject("person");
+		    String name = person.getString("name");
+		    int id = person.getJsonNumber("id").intValue();
+		    ArrayList<String> imageUrls = new ArrayList<>();
+		    if (!person.isNull("image")) {
+			JsonObject images = person.getJsonObject("image");
+			String medium = images.getString("medium");
+			String original = images.getString("original");
+			imageUrls.add(medium);
+			imageUrls.add(original);
+		    }
+		    JsonObject links = person.getJsonObject("_links");
+		    JsonObject self = links.getJsonObject("self");
+		    String personLink = self.getString("href");
 
-	    this.localStore.put(name, results);
+		    results.add(new Person(score, queryName, name, id, imageUrls, personLink));
+		}
+
+		this.localStore.put(queryName, results);
+	    }
 	} catch (IOException e) {
 	    System.out.println(e.getMessage());
 	    System.out.println("");
@@ -167,11 +184,45 @@ public class LocalStore {
     }
 
     public void editPerson(String name) {
-
+	// TO DO
     }
 
     public void exportPersonsToHTML() {
+	Set<String> queryNames = this.localStore.keySet();
+	Set<Person> personSet = new TreeSet<>();
 
+	for (String queryName : queryNames) {
+	    ArrayList<Person> results = this.localStore.get(queryName);
+	    for (Person person : results) {
+		personSet.add(person);
+	    }
+	}
+
+	try {
+	    PrintWriter pw = new PrintWriter("persons.html");
+
+	    pw.println("<html>");
+	    pw.println("<head>");
+	    pw.println("<title>Actors Search</title>");
+	    pw.println("<style>body {text-align: center;} .img-container {display:inline-block;} .img-container img:nth-of-type(1) {width: 200px;} .img-container img:nth-of-type(2) {width: 400px;}</style>");
+	    pw.println("</head>");
+	    pw.println("<body>");
+
+	    for (Person p : personSet) {
+		pw.println(p.toHTML());
+	    }
+
+	    pw.println("</body>");
+	    pw.println("</html>");
+	    pw.close();
+
+	    File f = new File("persons.html");
+	    Desktop.getDesktop().browse(f.toURI());
+	} catch (FileNotFoundException e) {
+	    System.out.println(e.getMessage());
+	} catch (IOException e) {
+	    System.out.println(e.getMessage());
+	}
     }
 
     private static String readString(DataInputStream dis, int size) throws IOException {
