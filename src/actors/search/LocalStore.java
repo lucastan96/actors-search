@@ -2,9 +2,11 @@ package actors.search;
 
 import java.awt.Desktop;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -12,6 +14,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 import javax.json.Json;
@@ -78,7 +81,46 @@ public class LocalStore {
     }
 
     public void saveLocalStore() {
-	// TO DO
+	DataOutputStream dos = null;
+
+	try {
+	    File file = new File("persons.dat");
+	    dos = new DataOutputStream(new FileOutputStream(file));
+
+	    Set<String> queryNames = this.localStore.keySet();
+
+	    for (String queryName : queryNames) {
+		dos.writeChars(pad(queryName, 16));
+		ArrayList<Person> persons = this.localStore.get(queryName);
+		dos.writeInt(persons.size());
+		for (Person p : persons) {
+		    dos.writeDouble(p.getScore());
+		    dos.writeChars(pad(p.getName(), 16));
+		    dos.writeInt(p.getId());
+		    dos.writeInt(p.getImageUrls().size());
+		    if (p.getImageUrls().size() > 0) {
+			for (String image : p.getImageUrls()) {
+			    dos.writeChars(pad(image, 100));
+			}
+		    }
+		    dos.writeChars(pad(p.getPersonLink(), 100));
+		    dos.writeDouble(p.getMyRating());
+		    dos.writeInt(p.getMyComments().size());
+		    if (p.getMyComments().size() > 0) {
+			for (String comment : p.getMyComments()) {
+			    dos.writeChars(pad(comment, 100));
+			}
+		    }
+		}
+	    }
+	} catch (Exception e) {
+	    System.out.println(e.getMessage());
+	} finally {
+	    try {
+		dos.close();
+	    } catch (IOException ex) {
+	    }
+	}
     }
 
     public void searchPerson(String queryName) {
@@ -183,8 +225,78 @@ public class LocalStore {
 	}
     }
 
+    public ArrayList<Person> searchLocally(String name) {
+	ArrayList<Person> resultList = new ArrayList<>();
+	Set<String> queryName = localStore.keySet();
+	if (queryName.contains(name)) {
+	    resultList = localStore.get(name);
+	}
+	return resultList;
+    }
+
     public void editPerson(String name) {
-	// TO DO
+	Scanner in = new Scanner(System.in);
+
+	Person newPerson = new Person();
+	ArrayList<Person> resultList = searchLocally(name);
+
+	if (resultList.isEmpty()) {
+	    System.out.println("No person found");
+	} else {
+	    for (Person p : resultList) {
+		System.out.println(p.toString());
+	    }
+	    System.out.println("Please enter the id:");
+	    int id = in.nextInt();
+	    boolean found = false;
+	    int count = 0;
+	    while (found == false && count < resultList.size()) {
+		if (resultList.get(count).getId() == id) {
+		    found = true;
+		    newPerson = resultList.get(count);
+		}
+		count++;
+	    }
+	    if (found == true) {
+		System.out.println("1. Rating");
+		System.out.println("2. Comment");
+		System.out.print("\nPlease enter your option: ");
+		int option = in.nextInt();
+		if (option == 1) {
+		    System.out.println("Enter the Rate: ");
+		    double rate = in.nextDouble();
+		    int index = this.localStore.get(name).indexOf(newPerson);
+		    this.localStore.get(name).get(index).setMyRating(rate);
+
+		    Set<String> keys = this.localStore.keySet();
+		    for (String key : keys) {
+			ArrayList<Person> ps = this.localStore.get(key);
+
+			for (Person p : ps) {
+			    if (newPerson.equals(p) == true) {
+				p.setMyRating(rate);
+			    }
+			}
+		    }
+		}
+		if (option == 2) {
+		    System.out.println("Enter the Comment: ");
+		    String com = in.nextLine();
+		    newPerson.setMyComments(com);
+		    Set<String> keys = this.localStore.keySet();
+		    for (String key : keys) {
+			ArrayList<Person> ps = this.localStore.get(key);
+			for (Person p : ps) {
+			    if (newPerson.equals(p) == true) {
+				p.setMyComments(com);
+			    }
+			}
+		    }
+		}
+	    } else {
+		System.out.println("No result found");
+	    }
+	}
     }
 
     public void exportPersonsToHTML() {
@@ -257,4 +369,12 @@ public class LocalStore {
 	    System.out.println(p.toString());
 	}
     }
+
+    private static String pad(String s, int n) {
+	while (s.length() < n) {
+	    s = '*' + s;
+	}
+	return s;
+    }
+
 }

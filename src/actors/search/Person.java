@@ -98,8 +98,8 @@ public class Person implements Comparable<Person> {
 	return myComments;
     }
 
-    public void setMyComments(ArrayList<String> myComments) {
-	this.myComments = myComments;
+    public void setMyComments(String myComments) {
+	this.myComments.add(myComments);
     }
 
     @Override
